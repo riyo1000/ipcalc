@@ -1,30 +1,45 @@
 <#
-    .SYNOPSIS
-    ipcalc PowerShell版
+.SYNOPSIS
+ipcalc PowerShell版
 
-    .DESCRIPTION
-    LinuxのipcalcコマンドのPowerShell実装。
+.DESCRIPTION
+LinuxのipcalcコマンドのPowerShell実装。
 
-    .INPUTS
-    Args[0]: CIDRアドレスまたはIPアドレス
-    Args[1]: サブネットマスク (CIDRアドレス指定の場合は無し)
+.PARAMETER Addr
+情報を知りたいIPアドレス、CIDR表記にも対応。
 
-    .OUTPUTS
-    Address: IPアドレス(入力値)
-    Netmask: サブネットマスク(入力値/算出)
-    Wildcard: ワイルドカードマスク(算出)
-    CIDR: CIDR(入力値/算出)
-    Network: ネットワークアドレス(算出)
-    HostMin: 若番で最初のホストアドレス(算出)
-    HostMax: 老番で最初のホストアドレス(算出)
-    Broadcast: ブロードキャストアドレス(算出)
-    Hosts/Net: 総ホスト数(算出)
-    Class: IPアドレスクラス(算出)
+.PARAMETER Subnet
+情報を知りたいネットワークのサブネットマスク、CIDR指定の場合は記載しない。
 
-    .EXAMPLE
-    powershell -ExclutionPolicy Bypass ipcalc.ps1 192.168.0.1/24
-    powershell -ExclutionPolicy Bypass ipcalc.ps1 192.168.0.1 255.255.255.0
+.INPUTS
+None. You cannot pipe objects to ipcalc.ps1.
+
+.OUTPUTS
+System.stringを返します。基本的な内容は下記の通り。
+----------
+Address: IPアドレス(入力値)
+Netmask: サブネットマスク(入力値/算出)
+Wildcard: ワイルドカードマスク(算出)
+CIDR: CIDR(入力値/算出)
+Network: ネットワークアドレス(算出)
+HostMin: 若番で最初のホストアドレス(算出)
+HostMax: 老番で最初のホストアドレス(算出)
+Broadcast: ブロードキャストアドレス(算出)
+Hosts/Net: 総ホスト数(算出)
+Class: IPアドレスクラス(算出)
+----------
+
+.EXAMPLE
+powershell -ExclutionPolicy Bypass ipcalc.ps1 192.168.0.1/24
+
+.EXAMPLE
+powershell -ExclutionPolicy Bypass ipcalc.ps1 192.168.0.1 255.255.255.0
 #>
+Param($Addr, $Subnet)
+
+$CalcIP = New-Object -TypeName "CalcIP" -ArgumentList $Addr, $Subnet
+$CalcIP.Print()
+
 
 class CalcIP {
     $Class = @(
@@ -59,9 +74,11 @@ class CalcIP {
             .SYNOPSIS
             初期化
 
-            .INPUTS
-            addr: IPアドレス / CIDRアドレス
-            snt: サブネットマスク(CIDRアドレス入力時は不要)
+            .PARAMETER addr
+            IPアドレス / CIDRアドレス
+            
+            .PARAMETER snt
+            サブネットマスク(CIDRアドレス入力時は不要)
         #>
         
         # CIDR表記
@@ -96,9 +113,11 @@ class CalcIP {
             .DESCRIPTION
             正規表現で*.*.*.*または*.*.*.*/*の書式にならっているか確認する。
         
-            .INPUTS
-            addr: IPアドレス / CIDRアドレス
-            type: "ADDR" IPアドレスチェックの場合 / "CIDR" CIDRアドレスチェックの場合
+            .PARAMETER addr
+            IPアドレス / CIDRアドレス
+            
+            .PARAMETER type
+            "ADDR" IPアドレスチェックの場合 / "CIDR" CIDRアドレスチェックの場合
         
             .OUTPUTS
             bool: 確認結果
@@ -122,8 +141,8 @@ class CalcIP {
             .DESCRIPTION
             IPアドレスを32bitの10進数に変換する。
         
-            .INPUTS
-            addr: IPアドレス
+            .PARAMETER addr
+            IPアドレス
         
             .OUTPUTS
             uInt32: 10進変換されたIPアドレス
@@ -144,8 +163,8 @@ class CalcIP {
             .DESCRIPTION
             32bitの10進数をIPアドレスに変換する。
         
-            .INPUTS
-            dec: 10進数
+            .PARAMETER dec
+            10進数
         
             .OUTPUTS
             string: 変換されたIPアドレス
@@ -166,8 +185,8 @@ class CalcIP {
             .DESCRIPTION
             32bitの10進数またはIPアドレスを2進数表記に変換する。
         
-            .INPUTS
-            addr: 10進またはIPアドレス
+            .PARAMETER addr
+            10進またはIPアドレス
         
             .OUTPUTS
             string: 変換された2進数表記
@@ -201,8 +220,8 @@ class CalcIP {
             .DESCRIPTION
             CIDR値をサブネットマスクに変換する。
         
-            .INPUTS
-            cdr: CIDR値(0-32)
+            .PARAMETER cdr
+            CIDR値(0-32)
         
             .OUTPUTS
             string: 変換されたサブネットマスク
@@ -238,8 +257,8 @@ class CalcIP {
             .DESCRIPTION
             サブネットマスクをCIDR値に変換する。
         
-            .INPUTS
-            snt: サブネットマスク
+            .PARAMETER snt
+            サブネットマスク
         
             .OUTPUTS
             int: 変換されたCIDR値
@@ -269,9 +288,11 @@ class CalcIP {
             .DESCRIPTION
             IPアドレス、サブネットマスクからネットワークアドレスを算出する。
         
-            .INPUTS
-            addr: IPアドレス
-            snt: サブネットマスク 
+            .PARAMETER addr
+            IPアドレス
+            
+            .PARAMETER snt
+            サブネットマスク 
         
             .OUTPUTS
             算出されたネットワークアドレス
@@ -307,9 +328,11 @@ class CalcIP {
             .DESCRIPTION
             ネットワークアドレス、サブネットマスクからブロードキャストアドレスを算出
         
-            .INPUTS
-            nwk: ネットワークアドレス
-            snt: サブネットマスク
+            .PARAMETER nwk
+            ネットワークアドレス
+            
+            .PARAMETER snt
+            サブネットマスク
         
             .OUTPUTS
             string: ブロードキャストアドレス
@@ -345,8 +368,8 @@ class CalcIP {
             .DESCRIPTION
             サブネットマスクからワイルドカードマスクを算出
         
-            .INPUTS
-            snt: サブネットマスク
+            .PARAMETER snt
+            サブネットマスク
         
             .OUTPUTS
             string: ワイルドカードマスク
@@ -419,8 +442,8 @@ class CalcIP {
             .DESCRIPTION
             IPアドレスからClass A～Eいずれか確認する。
         
-            .INPUTS
-            addr: IPアドレス
+            .PARAMETER addr
+            IPアドレス
         
             .OUTPUTS
             string: アドレスクラス
@@ -451,6 +474,3 @@ class CalcIP {
         return $ret
     }
 }
-
-$CalcIP = New-Object -TypeName "CalcIP" -ArgumentList $Args[0], $Args[1]
-$CalcIP.Print()
